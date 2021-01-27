@@ -48,7 +48,7 @@ function getLogger() {
     };
   }
   
-  function buildErrorResponse(context, status, messages) {
+  function buildErrorResponse(status, messages) {
     let messageArr = (typeof messages != 'undefined' && messages instanceof Array) ? messages : [messages];
     let body = {
       "status": status,
@@ -99,15 +99,6 @@ function getLogger() {
     return globalContext;
   }
 
-module.exports = {
-    buildErrorResponse,
-    buildResponse,
-    logMessage,
-    setContext,
-    postMessageHandler,
-    isSuccess
-};
-
 function isSuccess(response) {
   let status = response;
   if (typeof response === 'object') status = response.status;
@@ -156,3 +147,82 @@ async function postMessageHandler(body) {
 
   return response;
 }
+
+function getValueFromBody(field, body) {
+  let value;
+  if (field.indexOf('.') !== -1) {
+    const fieldArr = field.split('.');
+    value = body[fieldArr[0]];
+    for (let i = 1; i < fieldArr.length; i++) {
+      if (value) {
+        value = value[fieldArr[i]];
+      } else {
+        break;
+      }
+    }
+  } else {
+    value = body[field];
+  }
+
+  return value;
+}
+
+function validateBody(req, fields = {}) {
+  var errObj = true;
+  let userMessage = 'An unknown error has occurred.';
+  if (!fields.required) {
+    fields.required = [];
+  }
+
+  if (!req.body) {
+    const devMessage = `Provide a JSON payload with the following field(s): ${Object.keys(fields.required).join()} of the following type(s): ${Object.values(fields.required).join()}`;
+    errObj = {
+      developer_message: devMessage,
+      user_message: userMessage,
+      error_code: 444
+    };
+    return errObj;
+  }
+
+  const body = req.body;
+
+    /* item is input
+  const somefunction = ( item ) => {
+    //your function here
+  };
+  */
+
+    for (const [field, required_type] of Object.entries(fields.required)) {
+      let error_message = null;
+      const value = getValueFromBody(field, body);
+      const currentType = typeof value;
+
+      if (value === undefined) {
+        error_message = `'${field}' does not have a value.`;
+      } else if (currentType !== required_type) {
+        error_message = `'${field}' is '${currentType}' but needs to be '${required_type}'.`;
+      }
+
+      if (error_message) {
+        errObj = {
+          developer_message: error_message,
+          user_message: userMessage,
+          error_code: 444
+        };
+        return false;
+      }
+
+    }
+
+  return errObj;
+}
+
+module.exports = {
+  buildErrorResponse,
+  buildResponse,
+  logMessage,
+  setContext,
+  postMessageHandler,
+  isSuccess,
+  validateBody
+};
