@@ -201,7 +201,7 @@ class SGEmailService {
             return re.test(String(email).toLowerCase());
         }else if (Array.isArray(email)) {
             email.forEach(aEmail => {
-                if (!re.test(String(aEmail.email).toLowerCase())) {
+                if (!re.test(String(aEmail).toLowerCase())) {
                     this.addError({message: `Failed to send email to ${aEmail}. Email improperly formatted.`});
                     return false;
                 }
