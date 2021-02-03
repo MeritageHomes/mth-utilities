@@ -19,8 +19,8 @@ module.exports = async (context, req) => {
     // Validate request body
     var fields = {
         required: {
-            'to': 'string',
-            'to_name': 'string',
+            'to': 'string|array',
+            'to_name': 'string|array',
             'from': 'string',
             'from_name': 'string',
             'subject': 'string',
@@ -56,6 +56,7 @@ module.exports = async (context, req) => {
         }
     }
 
-    context.res = response;
+    //context.res = response;
+    context.done(null, response);
 
 };

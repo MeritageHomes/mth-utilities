@@ -195,12 +195,15 @@ function validateBody(req, fields = {}) {
     for (const [field, required_type] of Object.entries(fields.required)) {
       let error_message = null;
       const value = getValueFromBody(field, body);
-      const currentType = typeof value;
+
+      //split types for required fields
+      const allowedTypes = required_type.split("|");
+      const fieldtype = Array.isArray(value) ? "array" : typeof value;
 
       if (value === undefined) {
         error_message = `'${field}' does not have a value.`;
-      } else if (currentType !== required_type) {
-        error_message = `'${field}' is '${currentType}' but needs to be '${required_type}'.`;
+      } else if (!allowedTypes.includes(fieldtype)) {
+        error_message = `'${field}' is '${fieldtype}' but needs to be '${allowedTypes.join(", ")}'.`;
       }
 
       if (error_message) {
@@ -209,7 +212,7 @@ function validateBody(req, fields = {}) {
           user_message: userMessage,
           error_code: 444
         };
-        return false;
+        return errObj;
       }
 
     }
